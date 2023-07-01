@@ -83,6 +83,12 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <adplug/nemuopl.h>], [CNemuopl *dummy;
    AC_DEFINE(HAVE_ADPLUG_NUKEDOPL,, [Defined if AdPlug supports the NukedOPL synth])
 AC_MSG_RESULT([yes]), AC_MSG_RESULT([no - AdPlug >= 2.3 required]))
 
+# Check if AdPlug supports RegDumpOPL
+AC_MSG_CHECKING([whether AdPlug supports the RegDumpOPL synth])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <adplug/nemuopl.h>], [CNemuopl *dummy;])],
+   AC_DEFINE(HAVE_ADPLUG_REGDUMPOPL,, [Defined if AdPlug supports the RegDumpOPL synth])
+AC_MSG_RESULT([yes]), AC_MSG_RESULT([no - AdPlug >= 2.3 required]))
+
 # Restore flags after compiling test programs
 LIBS="$oldlibs"
 CPPFLAGS="$oldcppflags"

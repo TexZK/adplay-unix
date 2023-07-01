@@ -25,6 +25,7 @@
 #include <adplug/adplug.h>
 #include <adplug/emuopl.h>
 #include <adplug/kemuopl.h>
+#include <adplug/regdumpopl.h>
 #include <adplug/wemuopl.h>
 
 /*
@@ -78,6 +79,9 @@ typedef enum {
 	Emu_Woody,
 #ifdef HAVE_ADPLUG_NUKEDOPL
 	Emu_Nuked,
+#endif
+#ifdef HAVE_ADPLUG_REGDUMPOPL
+	Emu_RegDump,
 #endif
 } EmuType;
 
@@ -184,9 +188,12 @@ static void usage()
 	 program_name);
 
   // Print list of available output mechanisms
-  printf("Available emulators: satoh ken woody ");
+  printf("Available emulators: satoh ken woody");
 #ifdef HAVE_ADPLUG_NUKEDOPL
-  printf("nuked");
+  printf(" nuked");
+#endif
+#ifdef HAVE_ADPLUG_REGDUMPOPL
+  printf(" regdump");
 #endif
   printf("\n");
   printf("Available output mechanisms: "
@@ -319,6 +326,9 @@ static int decode_switches(int argc, char **argv)
 	else if(!strcmp(optarg, "woody")) cfg.emutype = Emu_Woody;
 #ifdef HAVE_ADPLUG_NUKEDOPL
 	else if(!strcmp(optarg, "nuked")) cfg.emutype = Emu_Nuked;
+#endif
+#ifdef HAVE_ADPLUG_REGDUMPOPL
+	else if(!strcmp(optarg, "regdump")) cfg.emutype = Emu_RegDump;
 #endif
 	else {
 	  message(MSG_ERROR, "unknown emulator -- %s", optarg);
@@ -536,6 +546,28 @@ int main(int argc, char **argv)
   			exit(EXIT_FAILURE);
   		} else {
   			opl = new CNemuopl(cfg.freq);
+  		}
+  	}
+  	break;
+#endif
+#ifdef HAVE_ADPLUG_REGDUMPOPL
+  case Emu_RegDump:
+    if (cfg.harmonic) {
+      COPLprops a, b;
+      a.use16bit = b.use16bit = true; // RegDump only supports 16-bit
+      a.stereo = b.stereo = true; // RegDump only supports stereo
+      a.opl = new CRegDumpOpl();
+      b.opl = new CRegDumpOpl();
+      opl = new CSurroundopl(&a, &b, cfg.bits == 16); // SurroundOPL can convert to 8-bit though
+      // CSurroundopl now owns a and b and will free upon destruction
+  	} else {
+  		if(cfg.bits != 16 || cfg.channels != 2) {
+  			fprintf(stderr, "Sorry, RegDump OPL3 emulator only works in stereo 16 bits. "
+  				"Use --stereo and --16bit options.\n");
+  			if(userdb) free(userdb);
+  			exit(EXIT_FAILURE);
+  		} else {
+  			opl = new CRegDumpOpl();
   		}
   	}
   	break;
